@@ -1,6 +1,7 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+import os
+
+from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
-import pyaudio
 import wave
 import time
 import threading
@@ -10,51 +11,14 @@ class MyWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.ui = Ui_Sobesedovanie()
-        self.ui.setupUi()
-        
-        self.thread = QtCore.QThread()
-        self.Record = record()
-        
-        
-class record(object):
-    def run(self, seconds):
-        CHUNK = 1024
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        RATE = 44100
-        RECORD_SECONDS = seconds
-        WAVE_OUTPUT_FILENAME = "output1.wav"
-
-        p = pyaudio.PyAudio()
-
-        stream = p.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        input_device_index=1,
-                        frames_per_buffer=CHUNK)
-        print("* recording")
-        frames = []
-        for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
-        print("* done recording")
-
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-
-        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-        wf.setnchannels(CHANNELS)
-        wf.setsampwidth(p.get_sample_size(FORMAT))
-        wf.setframerate(RATE)
-        wf.writeframes(b''.join(frames))
-        wf.close()
+        self.ui.setupUi(self)
 
 
 class Ui_Sobesedovanie(object):
-    def setupUi(self):
-        self.centralwidget = QtWidgets.QWidget()
+    def setupUi(self, form):
+        form.setObjectName("Form")
+        form.resize(1080, 720)
+        self.centralwidget = QtWidgets.QWidget(form)
         self.centralwidget.setObjectName("centralwidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(50, 90, 400, 50))
@@ -152,7 +116,8 @@ class Ui_Sobesedovanie(object):
         font.setPointSize(48)
         self.minutes.setFont(font)
         self.minutes.setObjectName("minutes")
-
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def retranslateUi(self, Sobesedovanie):
         _translate = QtCore.QCoreApplication.translate
@@ -169,9 +134,6 @@ class Ui_Sobesedovanie(object):
         self.checkBox.setText(_translate("Sobesedovanie", "Звук"))
         self.label.setText(_translate("Sobesedovanie", "МАОУ \"Лицей №131\""))
         self.minutes.setText(_translate("Sobesedovanie", "0:30"))
-
-
-
 
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
@@ -190,11 +152,23 @@ class Ui_Sobesedovanie(object):
 
     def click1(self):
         self.pushButton.setEnabled(False)
-        
-        self.thread.started.connect(self.record.run(seconds=120))
-        self.thread.start()
-        self.record.moveToThread(self.thread)
-        self.starttime = 120
+
+        self.recorder = QtMultimedia.QAudioRecorder()
+        self.selected_audio_input = self.recorder.audioInput()
+        self.recorder.setAudioInput(self.selected_audio_input)
+        self.settings = QtMultimedia.QAudioEncoderSettings()
+        self.selected_codec = "audio/pcm"
+        self.settings.setCodec(self.selected_codec)
+        self.settings.setSampleRate(192000)
+        self.settings.setBitRate(128000)
+        self.settings.setChannelCount(1)
+        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
+
+        self.filename = os.path.join("C:/Users/lolep/sobes/", "test")
+        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
+        self.recorder.record()
+
+        self.starttime = 5
         self.timerDown = QTimer()
         self.timerDown.setInterval(1000)
         self.timerDown.timeout.connect(self.timer)
@@ -232,17 +206,18 @@ class Ui_Sobesedovanie(object):
     def da(self):
         print('da')
 
-
     def timer(self):
         self.starttime -= 1
-        self.minutes.setText(f'{self.starttime//60}:{self.starttime%60:02}')
+        self.minutes.setText(f'{self.starttime // 60}:{self.starttime % 60:02}')
         if self.starttime == 0:
             self.pushButton_2.setEnabled(True)
             self.timerDown.stop()
+            self.recorder.stop()
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     window = MyWindow()
     window.show()
