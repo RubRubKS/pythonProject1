@@ -1,40 +1,38 @@
-import sys
+import pyaudio
+import wave
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+RECORD_SECONDS = 5
+WAVE_OUTPUT_FILENAME = "output.wav"
 
-class Window(QMainWindow):
-    def __init__(self):
-        super(Window, self).__init__()
+p = pyaudio.PyAudio()
 
-        self.setWindowTitle("Programm")
-        self.setGeometry(300, 250, 350, 200)
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
 
-        self.new_text = QtWidgets.QLabel(self)
+print("* recording")
 
-        self.main_text = QtWidgets.QLabel(self)
-        self.main_text.setText("DAARARARRAR")
-        self.main_text.move(100, 100)
-        self.main_text.adjustSize()
+frames = []
 
-        self.btn = QtWidgets.QPushButton(self)
-        self.btn.move(10, 20)
-        self.btn.setText("nazmi")
-        self.btn.setFixedWidth(200)
-        self.btn.clicked.connect(self.add_label)
+for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+    data = stream.read(CHUNK)
+    frames.append(data)
 
-    def add_label(self):
-        self.new_text.setText("Nazal")
-        self.new_text.move(100,50)
-        self.new_text.adjustSize()
+print("* done recording")
 
+stream.stop_stream()
+stream.close()
+p.terminate()
 
-
-def application():
-    app = QApplication(sys.argv)
-    window = Window()
-
-    window.show()
-    sys.exit(app.exec())
-
-application()
+wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+wf.setnchannels(CHANNELS)
+wf.setsampwidth(p.get_sample_size(FORMAT))
+wf.setframerate(RATE)
+wf.writeframes(b''.join(frames))
+wf.close()
