@@ -2,6 +2,7 @@ import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtMultimedia
 from PyQt5.QtCore import QTimer
+import simpleaudio
 
 
 class MyWindow(QtWidgets.QWidget):
@@ -10,10 +11,8 @@ class MyWindow(QtWidgets.QWidget):
         self.ui = Ui_Sobesedovanie()
         self.ui.setupUi(self)
 
-
 k = 0
-num = 1
-
+num = 0
 
 class Ui_Sobesedovanie(object):
     def setupUi(self, form):
@@ -90,6 +89,7 @@ class Ui_Sobesedovanie(object):
         self.pushButton_10.setStyleSheet("font: 16pt \"Segoe UI Emoji\";")
         self.pushButton_10.setObjectName("pushButton_10")
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox.setChecked(True)
         self.checkBox.setGeometry(QtCore.QRect(320, 580, 91, 31))
         font = QtGui.QFont()
         font.setPointSize(20)
@@ -116,8 +116,6 @@ class Ui_Sobesedovanie(object):
         QtCore.QMetaObject.connectSlotsByName(form)
 
 
-
-
     def retranslateUi(self, Sobesedovanie):
         _translate = QtCore.QCoreApplication.translate
         Sobesedovanie.setWindowTitle(_translate("Sobesedovanie", "MainWindow"))
@@ -134,6 +132,7 @@ class Ui_Sobesedovanie(object):
         self.label.setText(_translate("Sobesedovanie", "МАОУ \"Лицей №131\""))
         self.minutes.setText(_translate("Sobesedovanie", "0:00"))
 
+        self.pushButton.setEnabled(False)
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
         self.pushButton_5.setEnabled(False)
@@ -150,10 +149,33 @@ class Ui_Sobesedovanie(object):
         self.pushButton_9.clicked.connect(lambda: self.click7())
         self.pushButton_6.clicked.connect(lambda: self.nov_uchastnik())
         self.pushButton_10.clicked.connect(lambda: self.stop())
+        self.timerDown = QTimer()
 
     def nov_uchastnik(self):
         global num
         num += 1
+
+        self.starttime = 1
+        self.timerDown = QTimer()
+        self.timerDown.setInterval(1000)
+        self.timerDown.timeout.connect(self.timer2)
+        self.timerDown.start()
+
+        self.recorder = QtMultimedia.QAudioRecorder()
+        self.selected_audio_input = self.recorder.audioInput()
+        self.recorder.setAudioInput(self.selected_audio_input)
+        self.settings = QtMultimedia.QAudioEncoderSettings()
+        self.selected_codec = "audio/pcm"
+        self.settings.setCodec(self.selected_codec)
+        self.settings.setSampleRate(192000)
+        self.settings.setBitRate(128000)
+        self.settings.setChannelCount(1)
+        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
+
+        self.recorder.stop()
+
+        print('da')
+
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
@@ -162,29 +184,14 @@ class Ui_Sobesedovanie(object):
         self.pushButton_8.setEnabled(False)
         self.pushButton_9.setEnabled(False)
 
+
+
     def click1(self):
         global num
-
         self.pushButton.setEnabled(False)
+
         _translate = QtCore.QCoreApplication.translate
         self.minutes.setText(_translate("Sobesedovanie", "2:00"))
-
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Подготовка_к_чтению_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        print(self.filename)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
 
         self.starttime = 120
         self.timerDown = QTimer()
@@ -192,30 +199,14 @@ class Ui_Sobesedovanie(object):
         self.timerDown.timeout.connect(self.timer)
         self.timerDown.start()
 
-
-
         global k
         k = 1
 
     def click2(self):
         global num
         self.pushButton_2.setEnabled(False)
-
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Чтение_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "2:00"))
 
         self.starttime = 120
         self.timerDown = QTimer()
@@ -229,22 +220,8 @@ class Ui_Sobesedovanie(object):
     def click3(self):
         global num
         self.pushButton_3.setEnabled(False)
-
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Подготовка_к_пересказу_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "2:00"))
 
         self.starttime = 120
         self.timerDown = QTimer()
@@ -258,22 +235,8 @@ class Ui_Sobesedovanie(object):
     def click4(self):
         global num
         self.pushButton_5.setEnabled(False)
-
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Пересказ_текста_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "3:00"))
 
         self.starttime = 180
         self.timerDown = QTimer()
@@ -286,21 +249,8 @@ class Ui_Sobesedovanie(object):
     def click5(self):
         global num
         self.pushButton_7.setEnabled(False)
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Подготовка_к_монологу_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "1:00"))
 
         self.starttime = 60
         self.timerDown = QTimer()
@@ -313,21 +263,8 @@ class Ui_Sobesedovanie(object):
     def click6(self):
         global num
         self.pushButton_8.setEnabled(False)
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Монолог_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "3:00"))
 
         self.starttime = 180
         self.timerDown = QTimer()
@@ -340,22 +277,8 @@ class Ui_Sobesedovanie(object):
     def click7(self):
         global num
         self.pushButton_9.setEnabled(False)
-        self.recorder = QtMultimedia.QAudioRecorder()
-        self.selected_audio_input = self.recorder.audioInput()
-        self.recorder.setAudioInput(self.selected_audio_input)
-        self.settings = QtMultimedia.QAudioEncoderSettings()
-        self.selected_codec = "audio/pcm"
-        self.settings.setCodec(self.selected_codec)
-        self.settings.setSampleRate(192000)
-        self.settings.setBitRate(128000)
-        self.settings.setChannelCount(1)
-        self.recorder.setEncodingSettings(self.settings, QtMultimedia.QVideoEncoderSettings(), "audio/x-wav")
-
-        name = "Диалог_" + str(num)
-        self.filename = os.path.join("D:/", name)
-        print(self.filename)
-        self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
-        self.recorder.record()
+        _translate = QtCore.QCoreApplication.translate
+        self.minutes.setText(_translate("Sobesedovanie", "3:00"))
 
         self.starttime = 180
         self.timerDown = QTimer()
@@ -363,11 +286,18 @@ class Ui_Sobesedovanie(object):
         self.timerDown.timeout.connect(self.timer)
         self.timerDown.start()
 
+        global k
+        k = 7
+
     def stop(self):
-        if self.checkBox.isChecked():
-            print('da')
+        if self.timerDown.isActive():
+            if self.checkBox.isChecked():
+                beep = 'beep1.wav'
+                beep_sound = simpleaudio.WaveObject.from_wave_file(beep)
+                beep_sound.bytes_per_sample = 2
+                beep_sound.num_channels = 1
+                beep_sound.play()
         self.timerDown.stop()
-        self.recorder.stop()
         global k
         if k == 1:
             self.pushButton_2.setEnabled(True)
@@ -382,14 +312,24 @@ class Ui_Sobesedovanie(object):
         if k == 6:
             self.pushButton_9.setEnabled(True)
 
-    def da(self):
-        print('da')
+    def ShubinkinBoh(self):
+        print('S NAMI ROSSIYA')
 
     def timer(self):
         self.starttime -= 1
         self.minutes.setText(f'{self.starttime // 60}:{self.starttime % 60:02}')
-        # self.pushButton_10.clicked.connect(lambda: self.stop())
         if self.starttime == 0:
+            self.stop()
+
+    def timer2(self):
+        self.starttime -= 1
+        if self.starttime == 0:
+            name = "Участник" + str(num)
+            self.filename = os.path.join("D:/", name)
+            print(self.filename)
+            self.recorder.setOutputLocation(QtCore.QUrl.fromLocalFile(self.filename))
+            self.recorder.record()
+
             self.stop()
 
 
